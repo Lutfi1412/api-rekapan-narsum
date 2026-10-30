@@ -1,6 +1,6 @@
 -- ============================================================
 --  seed.sql — Data lengkap API Rekapan Narsum TSI
---  Sumber: data.txt (99 baris)
+--  Sumber: data.txt + public/data.json (101 baris)
 --  Idempotent: baris yang sudah ada tidak akan diduplikasi
 --  (UNIQUE: nama + topik + tanggal_mulai).
 --  Regenerate: bun run util/migrate.ts --seed --fresh
@@ -898,6 +898,24 @@ VALUES
     DATE '2026-10-05',
     DATE '2026-10-05',
     'AONE Hotel Jalan K.H. Wahid Hasyim No.80, RT.15/RW.3, Gondangdia, Kec. Menteng, Kota Jakarta Pusat, Daerah Khusus Ibukota Jakarta 10340',
+    'Offline'
+  ),
+  (
+    'Ikhsan A. Fattah',
+    'Kepala Biro Umum Kementerian Sosial Republik Indonesia',
+    'Penguatan Kapasitas Aplikator SIMAN',
+    DATE '2026-09-16',
+    DATE '2026-09-16',
+    'Hotel Grand Travello Bekasi Jl. Grand Kota Bintang, RT.006/RW.017, Jakasampurna, Bekasi, Jawa Barat',
+    'Offline'
+  ),
+  (
+    'Mundhi Saptono Widigdo',
+    'Kepala Biro Umum Kementerian Sosial Republik Indonesia',
+    'Penguatan Kapasitas Aplikator SIMAN',
+    DATE '2026-09-16',
+    DATE '2026-09-16',
+    'Hotel Grand Travello Bekasi Jl. Grand Kota Bintang, RT.006/RW.017, Jakasampurna, Bekasi, Jawa Barat',
     'Offline'
   )
 ON CONFLICT ON CONSTRAINT rekapan_narsum_unique_row DO NOTHING;
