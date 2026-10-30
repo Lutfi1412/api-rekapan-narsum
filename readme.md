@@ -101,8 +101,10 @@ psql -h 127.0.0.1 -U postgres -c "CREATE DATABASE rekapan_narsum_tsi"
 
 | Variable | Wajib | Default | Keterangan |
 | --- | --- | --- | --- |
-| `db_url` | ✅ | — | `postgres://USER:PASSWORD@HOST:PORT/DB` |
+| `db_url` | ⚠️ | — | `postgres://USER:PASSWORD@HOST:PORT/DB` |
 | `DATABASE_URL` | — | — | Alias bila `db_url` kosong |
+| `POSTGREST_URL` | — | — | Gateway HTTP PostgREST; bila diisi, `db_url` tidak wajib |
+| `POSTGREST_JWT` | — | — | JWT role `web_user` untuk gateway |
 | `JWT_SECRET` | ✅ | — | Secret penandatangan token |
 | `JWT_EXPIRES_IN` | — | `12h` | Masa berlaku token (`30m`, `12h`, `7d`, atau detik) |
 | `ADMIN_USERNAME` | — | `admin` | Username login |
@@ -113,7 +115,28 @@ psql -h 127.0.0.1 -U postgres -c "CREATE DATABASE rekapan_narsum_tsi"
 | `INSERT_WORKERS` | — | `3` | Worker paralel bulk insert |
 | `CORS_ORIGIN` | — | `*` | `*` atau daftar origin dipisah koma |
 
-Contoh `.env`:
+Di produksi (Vercel) dan `.env` lokal saat ini, koneksi memakai
+`POSTGREST_URL` + `POSTGREST_JWT` (mode gateway); `db_url` hanya dipakai
+bila ingin menyambung langsung ke Postgres.
+
+Contoh `.env` mode gateway (sama dengan env di Vercel):
+
+```dotenv
+POSTGREST_URL="https://xxxx.trycloudflare.com"
+POSTGREST_JWT="eyJhbGciOiJIUzI1NiIs..."
+DB_POOL_MAX=3
+DB_PREPARE=false
+JWT_SECRET="lutfi ganteng"
+JWT_EXPIRES_IN="12h"
+ADMIN_USERNAME="admin"
+ADMIN_PASSWORD="admin"
+PORT=3000
+HOST=0.0.0.0
+CORS_ORIGIN="*"
+INSERT_WORKERS=3
+```
+
+Contoh `.env` lokal dengan Postgres langsung:
 
 ```dotenv
 db_url="postgres://postgres:root@127.0.0.1:5432/rekapan_narsum_tsi"
