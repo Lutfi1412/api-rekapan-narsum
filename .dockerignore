@@ -1,0 +1,28 @@
+# Dependency
+node_modules
+.npm
+
+# Environment & rahasia
+.env
+.env.*
+
+# Build / log
+dist
+*.log
+logs
+
+# Test & cache
+coverage
+.bun
+*.tsbuildinfo
+
+# Git / editor
+.git
+.gitignore
+.vscode
+.idea
+
+# Docker
+Dockerfile
+docker-compose.yaml
+.dockerignore

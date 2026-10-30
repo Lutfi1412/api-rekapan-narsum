@@ -1,0 +1,507 @@
+{
+  "info": {
+    "_postman_id": "9c4b2f6a-7d31-42b8-9a52-rekapan-narsum-tsi",
+    "name": "API Rekapan Narsum TSI",
+    "description": "Collection CRUD API Rekapan Narsum TSI (Bun + Elysia + PostgreSQL).\n\n**Alur auth**\n1. Jalankan `Auth > POST /login` (username & password default: admin / admin).\n2. Test script menyimpan `data.token` ke variable `token`.\n3. Semua request admin memakai header `Authorization: Bearer {{token}}`.\n\nFolder: **Auth**, **User** (tanpa token), **Admin** (token), **System**.\nJalankan **Collection Runner** dengan urutan Auth -> User -> Admin -> System untuk cek semua status code.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000"
+    },
+    {
+      "key": "token",
+      "value": ""
+    },
+    {
+      "key": "username",
+      "value": "admin"
+    },
+    {
+      "key": "password",
+      "value": "admin"
+    },
+    {
+      "key": "id",
+      "value": "1"
+    }
+  ],
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "POST /login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200', () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.test('ada token JWT', () => {",
+                  "  pm.expect(body.data.token).to.be.a('string');",
+                  "  pm.expect(body.data.token.split('.').length).to.eql(3);",
+                  "});",
+                  "pm.test('tokenType Bearer', () => pm.expect(body.data.tokenType).to.eql('Bearer'));",
+                  "pm.test('ada expiresAt', () => pm.expect(new Date(body.data.expiresAt).getTime()).to.be.above(Date.now()));",
+                  "pm.collectionVariables.set('token', body.data.token);",
+                  "console.log('token disimpan ke variable {{token}}');"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"{{username}}\",\n  \"password\": \"{{password}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["login"]
+            },
+            "description": "Login admin. Default kredensial: admin / admin (lihat ADMIN_USERNAME & ADMIN_PASSWORD di .env). Response berisi JWT yang otomatis disimpan ke variable {{token}}."
+          }
+        },
+        {
+          "name": "POST /login - password salah",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 401', () => pm.response.to.have.status(401));",
+                  "pm.test('pesan sesuai', () => pm.expect(pm.response.json().message).to.include('salah'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"admin\",\n  \"password\": \"password-salah\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["login"]
+            },
+            "description": "Test negatif: password salah harus ditolak 401."
+          }
+        },
+        {
+          "name": "POST /login - field kosong",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 422', () => pm.response.to.have.status(422));",
+                  "pm.test('ada errors[]', () => pm.expect(pm.response.json().errors).to.be.an('array'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"admin\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["login"]
+            },
+            "description": "Test negatif: password tidak dikirim harus 422 dengan daftar error per field."
+          }
+        },
+        {
+          "name": "GET /me - cek token",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200', () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.test('role admin', () => pm.expect(body.data.role).to.eql('admin'));",
+                  "pm.test('ada expiresAt', () => pm.expect(body.data.expiresAt).to.be.a('string'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/me",
+              "host": ["{{baseUrl}}"],
+              "path": ["me"]
+            },
+            "description": "Memastikan token di variable {{token}} masih valid dan menampilkan waktu kedaluwarsanya."
+          }
+        }
+      ]
+    },
+    {
+      "name": "User (tanpa token)",
+      "item": [
+        {
+          "name": "GET / - daftar data publik",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200', () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.test('response berupa array', () => pm.expect(Array.isArray(body)).to.be.true);",
+                  "pm.test('key sesuai template', () => {",
+                  "  if (!body.length) return;",
+                  "  pm.expect(Object.keys(body[0])).to.eql(['id','Nama','Instansi','Topik','Tanggal Mulai','Tanggal Selesai','Lokasi','Mode Pelaksanaan']);",
+                  "});",
+                  "if (body.length) pm.collectionVariables.set('id', body[0].id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/",
+              "host": ["{{baseUrl}}"],
+              "path": [""]
+            },
+            "description": "Mengembalikan array seluruh data rekapan narasumber tanpa autentikasi (99 baris hasil seed)."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Admin (Bearer token)",
+      "item": [
+        {
+          "name": "GET /admin - daftar data admin",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('array data', () => pm.expect(pm.response.json()).to.be.an('array'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin"]
+            },
+            "description": "Sama seperti GET / tetapi wajib Bearer token hasil login."
+          }
+        },
+        {
+          "name": "GET /admin - tanpa token (harus 401)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 401 tanpa token', () => pm.response.to.have.status(401));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/admin",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin"]
+            },
+            "description": "Test negatif: tanpa Authorization harus 401."
+          }
+        },
+        {
+          "name": "POST /create - satu data",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 201', () => pm.response.to.have.status(201));",
+                  "const body = pm.response.json();",
+                  "pm.test('inserted = 1', () => pm.expect(body.inserted).to.eql(1));",
+                  "if (body.data && body.data.length) pm.collectionVariables.set('id', body.data[0].id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"Nama\": \"Mundhi Saptono Widigdo\",\n  \"Instansi\": \"Kepala Bagian Keuangan Direktorat Jenderal Perhubungan Laut, Kementerian Perhubungan\",\n  \"Topik\": \"Knowledge Sharing Tata Kelola Penghapusan Barang Milik Negara\",\n  \"Tanggal Mulai\": \"8 January 2026\",\n  \"Tanggal Selesai\": \"10 January 2026\",\n  \"Lokasi\": \"Grand Mercure Jakarta Kemayoran, Jl. H. Benyamin Sueb Kav. B6, Kemayoran\",\n  \"Mode Pelaksanaan\": \"Offline\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/create",
+              "host": ["{{baseUrl}}"],
+              "path": ["create"]
+            },
+            "description": "Menambah satu data. Kombinasi Nama + Topik + Tanggal Mulai yang sama akan ditolak 409."
+          }
+        },
+        {
+          "name": "POST /create - bulk 3 data (3 worker)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 201 / 207 / 409', () => pm.expect([201, 207, 409]).to.include(pm.response.code));",
+                  "const body = pm.response.json();",
+                  "pm.test('workers = 3', () => pm.expect(body.workers).to.eql(3));",
+                  "pm.test('total = 3', () => pm.expect(body.total).to.eql(3));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "[\n  {\n    \"Nama\": \"Suratno\",\n    \"Instansi\": \"Kepala Pusat Pendidikan dan Pelatihan Keuangan Publik (Pusdiklat KP)\",\n    \"Topik\": \"Pelatihan Jarak Jauh (PJJ) Aplikasi SIMAN Pengelola Barang (RKBMN)\",\n    \"Tanggal Mulai\": \"4 March 2026\",\n    \"Tanggal Selesai\": \"5 March 2026\",\n    \"Lokasi\": \"Daring\",\n    \"Mode Pelaksanaan\": \"Online\"\n  },\n  {\n    \"Nama\": \"Suratno\",\n    \"Instansi\": \"Kepala Pusat Pendidikan dan Pelatihan Keuangan Publik (Pusdiklat KP)\",\n    \"Topik\": \"Pelatihan Jarak Jauh (PJJ) Aplikasi SIMAN Pengelola Barang (BMN Idle dan Asuransi)\",\n    \"Tanggal Mulai\": \"5 March 2026\",\n    \"Tanggal Selesai\": \"6 March 2026\",\n    \"Lokasi\": \"Daring\",\n    \"Mode Pelaksanaan\": \"Online\"\n  },\n  {\n    \"Nama\": \"Nurrahman Toyib\",\n    \"Instansi\": \"Kepala Pusat Pendidikan dan Pelatihan Keuangan Publik (Pusdiklat KP)\",\n    \"Topik\": \"Pelatihan Jarak Jauh (PJJ) Aplikasi SIMAN Pengelola Barang (BMN Idle dan Asuransi)\",\n    \"Tanggal Mulai\": \"5 March 2026\",\n    \"Tanggal Selesai\": \"6 March 2026\",\n    \"Lokasi\": \"Daring\",\n    \"Mode Pelaksanaan\": \"Online\"\n  }\n]",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/create",
+              "host": ["{{baseUrl}}"],
+              "path": ["create"]
+            },
+            "description": "Bulk insert: array diproses paralel oleh 3 worker (env INSERT_WORKERS). Response memuat inserted, failed, workers, dan errors per item."
+          }
+        },
+        {
+          "name": "PUT /update/:id",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200', () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.test('data terupdate', () => pm.expect(body.data['Mode Pelaksanaan']).to.be.a('string'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"Nama\": \"Mundhi Saptono Widigdo\",\n  \"Instansi\": \"Kepala Bagian Keuangan Direktorat Jenderal Perhubungan Laut, Kementerian Perhubungan\",\n  \"Topik\": \"Knowledge Sharing Tata Kelola Penghapusan Barang Milik Negara\",\n  \"Tanggal Mulai\": \"9 January 2026\",\n  \"Tanggal Selesai\": \"11 January 2026\",\n  \"Lokasi\": \"Grand Mercure Jakarta Kemayoran\",\n  \"Mode Pelaksanaan\": \"Hybrid\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/update/{{id}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["update", "{{id}}"]
+            },
+            "description": "Full replace 7 field berdasarkan id. 404 bila id tidak ditemukan."
+          }
+        },
+        {
+          "name": "DELETE /delete/:id",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200 atau 404', () => pm.expect([200, 404]).to.include(pm.response.code));",
+                  "if (pm.response.code === 200) {",
+                  "  pm.test('ada data yang dihapus', () => pm.expect(pm.response.json().data).to.be.an('object'));",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/delete/{{id}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["delete", "{{id}}"]
+            },
+            "description": "Menghapus data berdasarkan id. 404 bila id sudah tidak ada."
+          }
+        }
+      ]
+    },
+    {
+      "name": "System",
+      "item": [
+        {
+          "name": "GET /health",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('database up', () => pm.expect(pm.response.json().data.database).to.eql('up'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/health",
+              "host": ["{{baseUrl}}"],
+              "path": ["health"]
+            }
+          }
+        },
+        {
+          "name": "GET /docs/json - OpenAPI",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/docs/json",
+              "host": ["{{baseUrl}}"],
+              "path": ["docs", "json"]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

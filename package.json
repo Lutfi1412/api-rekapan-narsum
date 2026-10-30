@@ -1,0 +1,29 @@
+{
+  "name": "api-rekapan-narsum-tsi",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "REST API rekapan narasumber (CRUD) - Bun + Elysia + PostgreSQL",
+  "module": "index.ts",
+  "scripts": {
+    "dev": "bun --watch index.ts",
+    "start": "bun index.ts",
+    "db:migrate": "bun util/migrate.ts",
+    "db:seed": "bun util/migrate.ts --seed",
+    "db:setup": "bun util/migrate.ts --seed",
+    "db:reset": "bun util/migrate.ts --seed --fresh",
+    "test": "bun test",
+    "test:api": "bun test test/api.test.ts"
+  },
+  "dependencies": {
+    "@elysiajs/cors": "^1.4.2",
+    "@elysiajs/swagger": "^1.3.1",
+    "@types/bun": "^1.4.4",
+    "elysia": "^1.4.30",
+    "jose": "^6.2.13",
+    "postgres": "^4.0.0"
+  },
+  "devDependencies": {
+    "typescript": "^7.0.2"
+  }
+}

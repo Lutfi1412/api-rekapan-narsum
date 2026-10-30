@@ -1,0 +1,27 @@
+# Dependency
+node_modules/
+.bun/
+
+# Environment (JANGAN commit kredensial)
+.env
+.env.local
+.env.*.local
+
+# Log & cache
+*.log
+logs/
+coverage/
+dist/
+*.tsbuildinfo
+
+# Editor / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# lockfile npm (project ini memakai bun.lock)
+package-lock.json
+
+.vercel
+.env*
